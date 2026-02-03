@@ -5,21 +5,21 @@
 class Muster < Formula
   desc "Universal Control Plane for AI Agents - MCP server aggregator"
   homepage "https://github.com/giantswarm/muster"
-  version "0.0.203"
+  version "0.0.204"
   license "Apache-2.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/giantswarm/muster/releases/download/v0.0.203/muster_Darwin_x86_64.zip"
-      sha256 "200d70ffa18276573c03f6ba62d24c1415b4b5c4fecd442a7b7755502dda4cd3"
+      url "https://github.com/giantswarm/muster/releases/download/v0.0.204/muster_Darwin_x86_64.zip"
+      sha256 "ab896c062b6809f85ad796891bdd502fe845c9561e9168ecf3423a3015ebca6c"
 
       def install
         bin.install "muster"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/giantswarm/muster/releases/download/v0.0.203/muster_Darwin_arm64.zip"
-      sha256 "f5006668849a865c9102e5819bc76fd2f94131d2165c4a1d8f14a1ec56cfebd1"
+      url "https://github.com/giantswarm/muster/releases/download/v0.0.204/muster_Darwin_arm64.zip"
+      sha256 "5c91258e0c562ea340a7cdec628435d5ffd21768d448c36048282401c8e185a3"
 
       def install
         bin.install "muster"
@@ -29,15 +29,15 @@ class Muster < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/giantswarm/muster/releases/download/v0.0.203/muster_Linux_x86_64.tar.gz"
-      sha256 "f5f530aa916fe29843a58bacbf47cc013d5154ee407ee90b3c66cc5d5c7282b3"
+      url "https://github.com/giantswarm/muster/releases/download/v0.0.204/muster_Linux_x86_64.tar.gz"
+      sha256 "05efec685486d0fc3e9d8c02bf0a8a4792df7703496757c38c24baaa4ba05184"
       def install
         bin.install "muster"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/giantswarm/muster/releases/download/v0.0.203/muster_Linux_arm64.tar.gz"
-      sha256 "48c29b830426355ef4bf8920e9b11052de11eea837a7bba0d1ed51d6af07e4e8"
+      url "https://github.com/giantswarm/muster/releases/download/v0.0.204/muster_Linux_arm64.tar.gz"
+      sha256 "5ef6a3f700171d5a751130d8c739271f209b265b0060fd41e67074a04ab4428e"
       def install
         bin.install "muster"
       end
