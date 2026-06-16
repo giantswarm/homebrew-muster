@@ -5,28 +5,28 @@
 class Muster < Formula
   desc "Universal Control Plane for AI Agents - MCP server aggregator"
   homepage "https://github.com/giantswarm/muster"
-  version "0.5.7"
+  version "0.5.8"
   license "Apache-2.0"
 
   on_macos do
     on_intel do
-      url "https://github.com/giantswarm/muster/releases/download/v0.5.7/muster-darwin-amd64"
-      sha256 "b1c85158af58d0bbb2299fe42b83f989e36a7aaa88bbf6341ea54e5772978cab"
+      url "https://github.com/giantswarm/muster/releases/download/v0.5.8/muster-darwin-amd64"
+      sha256 "15cc11accbeb12e4446edb5fd8d865a7fdff77188fd5e69dcda9e946a4b86274"
     end
     on_arm do
-      url "https://github.com/giantswarm/muster/releases/download/v0.5.7/muster-darwin-arm64"
-      sha256 "c77cc33acd6535e5a86aa7bb5c59884f5f97d77638eeb88e5a08f9e5cbc0fc0a"
+      url "https://github.com/giantswarm/muster/releases/download/v0.5.8/muster-darwin-arm64"
+      sha256 "7ed68940308604821a52766b4db9cb6c401ba6b0e4754661bfdbfa4bd872ec01"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/giantswarm/muster/releases/download/v0.5.7/muster-linux-amd64"
-      sha256 "285cf8578b50e833503551a69b08a5606fbfbbfe5d1c11795ebe5d7fdfd92927"
+      url "https://github.com/giantswarm/muster/releases/download/v0.5.8/muster-linux-amd64"
+      sha256 "da67ff60af505eaaefdf192ee5f83235b5aff6533eefa84deb380b31f7e52cd8"
     end
     on_arm do
-      url "https://github.com/giantswarm/muster/releases/download/v0.5.7/muster-linux-arm64"
-      sha256 "8d54767935bda6837c1a0625689d3f32b3d9b1f00e75b1ab0448af3855026130"
+      url "https://github.com/giantswarm/muster/releases/download/v0.5.8/muster-linux-arm64"
+      sha256 "c5276fec1b6aebd85aa458d3eb21605ae2cdd291221465020a2878c1297c146d"
     end
   end
 
