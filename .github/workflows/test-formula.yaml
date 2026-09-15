@@ -1,0 +1,28 @@
+name: Test formula
+
+# Every pull request that touches the formula or the scripts installs the
+# formula on the runner and runs its test block, as "Update formula" does
+# before it opens its own pull request.
+
+on:
+  pull_request:
+    paths:
+      - Formula/**
+      - scripts/**
+      - .github/workflows/test-formula.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Lint the scripts
+        run: shellcheck scripts/*.sh
+
+      - name: Install and test the formula
+        run: scripts/test-formula.sh
