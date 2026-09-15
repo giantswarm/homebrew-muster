@@ -5,15 +5,11 @@ platform runs.
 
 ## Install
 
+Homebrew loads formulae from a third-party tap only after the tap has been trusted:
+
 ```bash
+brew trust giantswarm/muster
 brew install giantswarm/muster/muster
-```
-
-or, in two steps:
-
-```bash
-brew tap giantswarm/muster
-brew install muster
 ```
 
 The formula installs the release binary for macOS and Linux on `amd64` and `arm64`, with shell
