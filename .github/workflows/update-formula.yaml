@@ -1,33 +1,111 @@
 name: Update formula
 
+# Brings Formula/muster.rb to a giantswarm/muster release.
+#
+# The release pipeline of giantswarm/muster (.circleci/custom.yml there) sends
+# a `muster-release` repository dispatch once a release's binaries are
+# uploaded. "Check for a new release" runs this workflow on a schedule as a
+# fallback, and `gh workflow run update-formula.yaml [-f tag=v5.22.0]` runs it
+# by hand. A run verifies the binaries against their Sigstore bundles,
+# installs the formula on the runner, then opens a pull request and merges it
+# as heraldbot, Giant Swarm's automation App: the `protect-main` ruleset lists
+# heraldbot as a bypass actor, so the merge needs no review. (GitHub Actions
+# itself cannot be a bypass actor, and a pull request opened with its token
+# would not run this repository's checks.)
+
 on:
-  schedule:
-    # Check for new muster releases hourly.
-    - cron: "23 * * * *"
-  workflow_dispatch: {}
+  repository_dispatch:
+    types: [muster-release]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to pin the formula to, e.g. v5.22.0. Empty: the newest release with published binaries."
+        required: false
+        default: ""
 
 permissions:
-  contents: write
+  contents: read
+  actions: write # re-enable the scheduled fallback
+
+# Releases minutes apart queue up instead of racing for the same branch.
+concurrency:
+  group: update-formula
+  cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Mint a heraldbot token
+        id: heraldbot
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.HERALD_CLIENT_ID }}
+          private-key: ${{ secrets.HERALD_APP_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
 
-      - name: Update formula from latest muster release
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.heraldbot.outputs.token }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Update the formula
+        id: update
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/update-formula.sh
-
-      - name: Commit and push
+          GH_TOKEN: ${{ github.token }}
+          DISPATCHED_TAG: ${{ github.event.client_payload.tag }}
+          PINNED_TAG: ${{ inputs.tag }}
         run: |
-          if git diff --quiet Formula/muster.rb; then
-            exit 0
+          if [ -n "$PINNED_TAG" ]; then
+            scripts/update-formula.sh --pin "$PINNED_TAG"
+          else
+            scripts/update-formula.sh "$DISPATCHED_TAG"
           fi
-          version=$(sed -n 's/^  version "\(.*\)"/\1/p' Formula/muster.rb)
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/muster.rb
-          git commit -m "Update muster to v$version"
-          git push
+
+      - name: Install and test the formula
+        if: steps.update.outputs.changed == 'true'
+        run: scripts/test-formula.sh
+
+      - name: Open and merge the pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.heraldbot.outputs.token }}
+          VERSION: ${{ steps.update.outputs.version }}
+        run: |
+          set -euo pipefail
+          branch="update/v$VERSION"
+          git config user.name "heraldbot[bot]"
+          git config user.email "149080493+heraldbot[bot]@users.noreply.github.com"
+          git switch --create "$branch"
+          git commit --all --message "Update muster to v$VERSION"
+          # A rerun for the same version replaces the branch and reuses its pull request.
+          git push --force --set-upstream origin "$branch"
+          number=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
+          if [ -z "$number" ]; then
+            run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            number=$(gh pr create --base main --head "$branch" \
+              --title "Update muster to v$VERSION" \
+              --body "Automated update to [v$VERSION](https://github.com/giantswarm/muster/releases/tag/v$VERSION).
+
+          Every binary was verified against its Sigstore bundle, and the formula was installed and tested on the runner of [this run]($run)." \
+              | sed 's#.*/pull/##')
+          fi
+          # GitHub computes mergeability shortly after the push.
+          for attempt in 1 2 3 4 5 6; do
+            if gh pr merge "$number" --squash --delete-branch; then
+              exit 0
+            fi
+            echo "merge attempt $attempt failed, retrying in 10 s"
+            sleep 10
+          done
+          exit 1
+
+      - name: Keep the scheduled fallback armed
+        # GitHub disables a scheduled workflow after 60 days without a commit.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable check-release.yaml

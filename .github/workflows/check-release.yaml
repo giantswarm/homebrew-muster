@@ -1,0 +1,23 @@
+name: Check for a new release
+
+# Fallback for a lost dispatch from giantswarm/muster's release pipeline: runs
+# "Update formula", which picks the newest release with published binaries.
+# Only this workflow has a schedule, so GitHub's rule that disables scheduled
+# workflows after 60 days without a commit can take out nothing but the
+# fallback, and "Update formula" re-enables it on every run.
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  actions: write
+
+jobs:
+  run-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run "Update formula"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run update-formula.yaml --repo "$GITHUB_REPOSITORY"
