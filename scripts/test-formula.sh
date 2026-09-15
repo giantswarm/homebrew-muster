@@ -37,6 +37,12 @@ fi
 mkdir -p "$(dirname "$tap_dir")"
 ln -sfn "$ROOT" "$tap_dir"
 
+# Homebrew loads formulae from a third-party tap only after `brew trust`;
+# Homebrew versions without the command do not ask for it.
+if brew trust --help >/dev/null 2>&1; then
+  brew trust "$TAP"
+fi
+
 brew audit --strict --formula "$NAME"
 if brew list --formula --versions muster >/dev/null 2>&1; then
   brew reinstall --formula "$NAME"
