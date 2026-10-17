@@ -21,6 +21,8 @@ set -euo pipefail
 
 REPO="giantswarm/muster"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/version.sh
+source "$ROOT/scripts/version.sh"
 FORMULA="$ROOT/Formula/muster.rb"
 ASSETS=(muster-darwin-amd64 muster-darwin-arm64 muster-linux-amd64 muster-linux-arm64)
 
@@ -41,11 +43,6 @@ output() {
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     printf '%s=%s\n' "$1" "$2" >>"$GITHUB_OUTPUT"
   fi
-}
-
-# newer_than <a> <b>: version a sorts after version b.
-newer_than() {
-  [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" ]]
 }
 
 # certificate <bundle>: the signing certificate of a Sigstore bundle, as PEM.

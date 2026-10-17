@@ -24,5 +24,8 @@ jobs:
       - name: Lint the scripts
         run: shellcheck scripts/*.sh
 
+      - name: Test the version comparison
+        run: scripts/test-version.sh
+
       - name: Install and test the formula
         run: scripts/test-formula.sh
