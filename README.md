@@ -32,12 +32,13 @@ Do not edit it by hand.
   The [Update formula](.github/workflows/update-formula.yaml) workflow verifies every binary
   against its Sigstore bundle (a CircleCI build of giantswarm/muster, the identity
   `muster self-update` checks), installs the formula on the runner, then opens a pull request
-  and merges it.
+  and closes the older update pull requests it supersedes.
 - [Check for a new release](.github/workflows/check-release.yaml) runs the same update every
   six hours in case a dispatch was lost.
-- The pull requests are opened and merged by heraldbot, Giant Swarm's automation App, which
-  the `protect-main` ruleset lists as a bypass actor. Pull requests by people still need a
-  review and pass the [Test formula](.github/workflows/test-formula.yaml) check.
+- The pull requests are opened by heraldbot, Giant Swarm's automation App. Every pull request
+  needs a review and the [Test formula](.github/workflows/test-formula.yaml) check: the team's
+  scheduled [marge](https://github.com/giantswarm/marge) sweep approves and squash-merges
+  heraldbot's pull requests once they are green.
 - By hand: `gh workflow run update-formula.yaml --repo giantswarm/homebrew-muster`, with
   `-f tag=v5.22.0` to pin a release. Locally: `scripts/update-formula.sh`, then
   `scripts/test-formula.sh`.
