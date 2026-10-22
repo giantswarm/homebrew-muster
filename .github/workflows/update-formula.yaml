@@ -83,14 +83,14 @@ jobs:
           git config user.name "heraldbot[bot]"
           git config user.email "149080493+heraldbot[bot]@users.noreply.github.com"
           git switch --create "$branch"
-          git commit --all --message "Update muster to v$VERSION"
+          git commit --all --message "chore(deps): update muster to v$VERSION"
           # A rerun for the same version replaces the branch and reuses its pull request.
           git push --force --set-upstream origin "$branch"
           number=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
           if [ -z "$number" ]; then
             run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             number=$(gh pr create --base main --head "$branch" \
-              --title "Update muster to v$VERSION" \
+              --title "chore(deps): update muster to v$VERSION" \
               --body "Automated update to [v$VERSION](https://github.com/giantswarm/muster/releases/tag/v$VERSION).
 
           Every binary was verified against its Sigstore bundle, and the formula was installed and tested on the runner of [this run]($run)." \
