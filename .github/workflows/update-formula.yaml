@@ -7,11 +7,13 @@ name: Update formula
 # uploaded. "Check for a new release" runs this workflow on a schedule as a
 # fallback, and `gh workflow run update-formula.yaml [-f tag=v5.22.0]` runs it
 # by hand. A run verifies the binaries against their Sigstore bundles,
-# installs the formula on the runner, then opens a pull request and merges it
-# as heraldbot, Giant Swarm's automation App: the `protect-main` ruleset lists
-# heraldbot as a bypass actor, so the merge needs no review. (GitHub Actions
-# itself cannot be a bypass actor, and a pull request opened with its token
-# would not run this repository's checks.)
+# installs the formula on the runner, then opens a pull request as heraldbot,
+# Giant Swarm's automation App, and closes the update pull requests it
+# supersedes. The default branch requires a review, so the run does not merge:
+# the team's scheduled marge sweep (https://github.com/giantswarm/marge)
+# approves and squash-merges heraldbot pull requests once their checks are
+# green. (A pull request opened with the GitHub Actions token would not run
+# this repository's checks.)
 
 on:
   repository_dispatch:
@@ -38,7 +40,7 @@ jobs:
     steps:
       - name: Mint a heraldbot token
         id: heraldbot
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ secrets.HERALD_CLIENT_ID }}
           private-key: ${{ secrets.HERALD_APP_KEY }}
@@ -70,7 +72,7 @@ jobs:
         if: steps.update.outputs.changed == 'true'
         run: scripts/test-formula.sh
 
-      - name: Open and merge the pull request
+      - name: Open the pull request
         if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ steps.heraldbot.outputs.token }}
@@ -94,15 +96,14 @@ jobs:
           Every binary was verified against its Sigstore bundle, and the formula was installed and tested on the runner of [this run]($run)." \
               | sed 's#.*/pull/##')
           fi
-          # GitHub computes mergeability shortly after the push.
-          for attempt in 1 2 3 4 5 6; do
-            if gh pr merge "$number" --squash --delete-branch; then
-              exit 0
-            fi
-            echo "merge attempt $attempt failed, retrying in 10 s"
-            sleep 10
-          done
-          exit 1
+          echo "opened $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$number; the marge sweep merges it once it is green"
+          # The formula on main is older than this version, so every other open
+          # update pull request is an older one this pull request replaces.
+          gh pr list --state open --json number,headRefName \
+            --jq ".[] | select(.headRefName | startswith(\"update/v\")) | select(.number != $number) | .number" |
+            while read -r older; do
+              gh pr close "$older" --delete-branch --comment "Superseded by #$number."
+            done
 
       - name: Keep the scheduled fallback armed
         # GitHub disables a scheduled workflow after 60 days without a commit.
