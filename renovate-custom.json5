@@ -1,0 +1,8 @@
+// Formula/muster.rb carries one binary per platform. Renovate's homebrew
+// manager rewrites only the first url/sha256 pair, and to a source tarball;
+// the "Update formula" workflow owns every bump.
+{
+  homebrew: {
+    enabled: false,
+  },
+}
