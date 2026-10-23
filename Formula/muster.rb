@@ -10,8 +10,8 @@ class Muster < Formula
 
   on_macos do
     on_intel do
-      url "https://github.com/giantswarm/muster/releases/download/v5.52.14/muster-darwin-amd64"
-      sha256 "783d0f226ae23ec1fea4771ef3abacefa6e2b09ab42fc263114a43fb1ecb6b0d"
+      url "https://github.com/giantswarm/muster/archive/refs/tags/v5.52.15.tar.gz"
+      sha256 "8441bae64c6b5a8b35d0287e13409ac25642aeb73a16d6ca8450cadb2813ab2e"
     end
     on_arm do
       url "https://github.com/giantswarm/muster/releases/download/v5.52.14/muster-darwin-arm64"
